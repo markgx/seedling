@@ -41,9 +41,29 @@ fs.mkdir(OUTPUT_DIR, function(error) {
 
 // TODO: process 'templates'
 
+var processFolder = function(filePath, relativePath) {
+  fs.readdir(filePath, function(err, files) {
+    files.forEach(function(el) {
+      var srcPath = path.join(filePath, el);
+      var dstPath = path.join(OUTPUT_DIR, relativePath, el);
+      var fstat = fs.statSync(srcPath);
+
+      if (fstat.isDirectory()) {
+        console.log('dir: ' + srcPath);
+
+        fs.mkdirSync(dstPath);
+        processFolder(srcPath, path.join(relativePath, el));
+      } else if (fstat.isFile()) {
+        console.log('file: ' + srcPath);
+
+        // TODO: process special markup files
+        fs.createReadStream(srcPath).pipe(fs.createWriteStream(dstPath));
+      }
+    });
+  });
+};
+
 // process 'public' files
 if (fs.existsSync(PUBLIC_DIR)) {
-  fs.readdir(PUBLIC_DIR, function (err, files) {
-    // TODO: something
-  });
+  processFolder(PUBLIC_DIR, '/');
 }
