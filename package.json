@@ -10,7 +10,8 @@
     "url": "https://github.com/markgx/seedling.git"
   },
   "dependencies" : {
-    "markdown": "0.4.x"
+    "markdown": "0.4.x",
+    "front-matter": "0.0.x"
   },
   "devDependencies": {
   },

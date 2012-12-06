@@ -1,6 +1,7 @@
 var path = require('path'),
   fs = require('fs'),
-  markdown = require('markdown');
+  markdown = require('markdown'),
+  frontMatter = require('front-matter');
 
 var OUTPUT_DIR = './_site',
   PUBLIC_DIR = './public';
@@ -66,7 +67,14 @@ var processFolder = function(filePath, relativePath) {
           case '.md':
             fs.readFile(srcPath, 'utf8', function(err, data) {
               if (err) throw err;
-              var html = markdown.markdown.toHTML(data);
+
+              var extract = frontMatter(data);
+              var html = markdown.markdown.toHTML(extract.body);
+
+              if (extract.attributes.template) {
+                // TODO: use template if defined in metadata
+              }
+
               var dstFilename = el.replace(/\.md$/i, '.html');
               dstPath = path.join(OUTPUT_DIR, relativePath, dstFilename);
 
