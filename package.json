@@ -1,0 +1,23 @@
+{
+  "name": "seedling",
+  "preferGlobal": "true",
+  "version": "0.0.0",
+  "author": "Mark Guerra <markgx@gmail.com>",
+  "description": "",
+  "main": "./index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markgx/seedling.git"
+  },
+  "dependencies" : {
+    "markdown": "0.4.x"
+  },
+  "devDependencies": {
+  },
+  "bundledDependencies": [
+  ],  
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.8"
+  }
+}

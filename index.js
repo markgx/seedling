@@ -1,5 +1,6 @@
 var path = require('path'),
-  fs = require('fs');
+  fs = require('fs'),
+  markdown = require('markdown');
 
 var OUTPUT_DIR = './_site',
   PUBLIC_DIR = './public';
@@ -56,8 +57,26 @@ var processFolder = function(filePath, relativePath) {
       } else if (fstat.isFile()) {
         console.log('file: ' + srcPath);
 
-        // TODO: process special markup files
-        fs.createReadStream(srcPath).pipe(fs.createWriteStream(dstPath));
+        // process special markup files
+        var fileExt = path.extname(el).toLowerCase();
+
+        // TODO: handle layouts
+
+        switch (fileExt) {
+          case '.md':
+            fs.readFile(srcPath, 'utf8', function(err, data) {
+              if (err) throw err;
+              var html = markdown.markdown.toHTML(data);
+              var dstFilename = el.replace(/\.md$/i, '.html');
+              dstPath = path.join(OUTPUT_DIR, relativePath, dstFilename);
+
+              fs.writeFile(dstPath, html);
+            });
+
+            break;
+          default:
+            fs.createReadStream(srcPath).pipe(fs.createWriteStream(dstPath));
+        }
       }
     });
   });
