@@ -11,7 +11,30 @@ var OUTPUT_DIR = './_site',
 console.log('Seedling v.0.0');
 console.log('Generating site for path: ' + path.resolve('.'));
 
-var deleteFolderRecursive = function(path) {
+// delete output folder if it exists so that we can regenerate it
+if (fs.existsSync(OUTPUT_DIR)) {
+  deleteFolderRecursive(OUTPUT_DIR);
+}
+
+fs.mkdir(OUTPUT_DIR, function(error) {
+  if (error) {
+    console.log(error);
+    process.exit(1);
+  }
+});
+
+var templates = {};
+
+if (fs.existsSync(TEMPLATE_DIR)) {
+  templates = loadTemplates(TEMPLATE_DIR);
+}
+
+// process 'public' files
+if (fs.existsSync(PUBLIC_DIR)) {
+  processFolder(PUBLIC_DIR, '/');
+}
+
+function deleteFolderRecursive(path) {
   var files = [];
 
   if (fs.existsSync(path)) {
@@ -29,29 +52,18 @@ var deleteFolderRecursive = function(path) {
 
     fs.rmdirSync(path);
   }
-};
-
-// delete output folder if it exists so that we can regenerate it
-if (fs.existsSync(OUTPUT_DIR)) {
-  deleteFolderRecursive(OUTPUT_DIR);
 }
 
-fs.mkdir(OUTPUT_DIR, function(error) {
-  if (error) {
-    console.log(error);
-    process.exit(1);
-  }
-});
-
-var processTemplates = function(filePath) {
+function loadTemplates(filePath) {
   var files = fs.readdirSync(filePath);
   var templates = {};
 
-  files.forEach(function(el) {
-    var srcPath = path.join(filePath, el);
-    if (fs.statSync(srcPath).isFile() && path.extname(el).toLowerCase() === '.html') {
+  files.forEach(function loadTemplate(file) {
+    var srcPath = path.join(filePath, file);
+
+    if (fs.statSync(srcPath).isFile() && path.extname(file).toLowerCase() === '.html') {
       // add to templates store
-      var templateName = el.replace(/\.html$/i, '');
+      var templateName = file.replace(/\.html$/i, '');
       console.log('template: ' + templateName);
       templates[templateName] = liquid.Template.parse(fs.readFileSync(srcPath, 'utf8'));
     }
@@ -60,13 +72,7 @@ var processTemplates = function(filePath) {
   return templates;
 };
 
-var templates = {};
-
-if (fs.existsSync(TEMPLATE_DIR)) {
-  templates = processTemplates(TEMPLATE_DIR);
-}
-
-var processFolder = function(filePath, relativePath) {
+function processFolder(filePath, relativePath) {
   fs.readdir(filePath, function(err, files) {
     files.forEach(function(el) {
       var srcPath = path.join(filePath, el);
@@ -118,9 +124,4 @@ var processFolder = function(filePath, relativePath) {
       }
     });
   });
-};
-
-// process 'public' files
-if (fs.existsSync(PUBLIC_DIR)) {
-  processFolder(PUBLIC_DIR, '/');
 }
