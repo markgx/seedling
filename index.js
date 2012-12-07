@@ -1,8 +1,7 @@
 var path = require('path'),
   fs = require('fs'),
-  markdown = require('markdown'),
-  frontMatter = require('front-matter'),
-  liquid = require('liquid-node');
+  liquid = require('liquid-node'),
+  contentFile = require('./lib/content_file.js');
 
 var OUTPUT_DIR = './_site',
   PUBLIC_DIR = './public',
@@ -31,7 +30,7 @@ if (fs.existsSync(TEMPLATE_DIR)) {
 
 // process 'public' files
 if (fs.existsSync(PUBLIC_DIR)) {
-  processFolder(PUBLIC_DIR, '/');
+  processFolder(PUBLIC_DIR, '/', templates);
 }
 
 function deleteFolderRecursive(path) {
@@ -72,55 +71,21 @@ function loadTemplates(filePath) {
   return templates;
 };
 
-function processFolder(filePath, relativePath) {
+function processFolder(filePath, relativePath, templates) {
   fs.readdir(filePath, function(err, files) {
     files.forEach(function(el) {
       var srcPath = path.join(filePath, el);
-      var dstPath = path.join(OUTPUT_DIR, relativePath, el);
       var fstat = fs.statSync(srcPath);
 
       if (fstat.isDirectory()) {
         console.log('dir: ' + srcPath);
 
+        var dstPath = path.join(OUTPUT_DIR, relativePath, el);
         fs.mkdirSync(dstPath);
-        processFolder(srcPath, path.join(relativePath, el));
+        processFolder(srcPath, path.join(relativePath, el), templates);
       } else if (fstat.isFile()) {
         console.log('file: ' + srcPath);
-
-        // process special markup files
-        var fileExt = path.extname(el).toLowerCase();
-
-        // handle layouts
-
-        switch (fileExt) {
-          case '.md':
-            fs.readFile(srcPath, 'utf8', function(err, data) {
-              if (err) throw err;
-
-              var extract = frontMatter(data);
-              var html = markdown.markdown.toHTML(extract.body);
-
-              var dstFilename = el.replace(/\.md$/i, '.html');
-              dstPath = path.join(OUTPUT_DIR, relativePath, dstFilename);
-
-              if (extract.attributes.template && templates[extract.attributes.template]) {
-                // use template if defined in metadata
-                var render = templates[extract.attributes.template].render({
-                  'content': html
-                });
-
-                render.done(function(renderedHtml) {
-                  fs.writeFile(dstPath, renderedHtml);
-                });
-              } else {
-                fs.writeFile(dstPath, html);
-              }
-            });
-
-            break;
-          default:
-            fs.createReadStream(srcPath).pipe(fs.createWriteStream(dstPath));
-        }
+        contentFile.process(srcPath, path.join(OUTPUT_DIR, relativePath), templates);
       }
     });
   });
