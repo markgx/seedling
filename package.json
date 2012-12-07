@@ -11,7 +11,8 @@
   },
   "dependencies" : {
     "markdown": "0.4.x",
-    "front-matter": "0.0.x"
+    "front-matter": "0.0.x",
+    "liquid-node": "0.0.x"
   },
   "devDependencies": {
   },

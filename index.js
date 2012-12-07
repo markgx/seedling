@@ -1,10 +1,12 @@
 var path = require('path'),
   fs = require('fs'),
   markdown = require('markdown'),
-  frontMatter = require('front-matter');
+  frontMatter = require('front-matter'),
+  liquid = require('liquid-node');
 
 var OUTPUT_DIR = './_site',
-  PUBLIC_DIR = './public';
+  PUBLIC_DIR = './public',
+  TEMPLATE_DIR = './templates';
 
 console.log('Seedling v.0.0');
 console.log('Generating site for path: ' + path.resolve('.'));
@@ -41,7 +43,28 @@ fs.mkdir(OUTPUT_DIR, function(error) {
   }
 });
 
-// TODO: process 'templates'
+var processTemplates = function(filePath) {
+  var files = fs.readdirSync(filePath);
+  var templates = {};
+
+  files.forEach(function(el) {
+    var srcPath = path.join(filePath, el);
+    if (fs.statSync(srcPath).isFile() && path.extname(el).toLowerCase() === '.html') {
+      // add to templates store
+      var templateName = el.replace(/\.html$/i, '');
+      console.log('template: ' + templateName);
+      templates[templateName] = liquid.Template.parse(fs.readFileSync(srcPath, 'utf8'));
+    }
+  });
+
+  return templates;
+};
+
+var templates = {};
+
+if (fs.existsSync(TEMPLATE_DIR)) {
+  templates = processTemplates(TEMPLATE_DIR);
+}
 
 var processFolder = function(filePath, relativePath) {
   fs.readdir(filePath, function(err, files) {
@@ -61,7 +84,7 @@ var processFolder = function(filePath, relativePath) {
         // process special markup files
         var fileExt = path.extname(el).toLowerCase();
 
-        // TODO: handle layouts
+        // handle layouts
 
         switch (fileExt) {
           case '.md':
@@ -71,14 +94,21 @@ var processFolder = function(filePath, relativePath) {
               var extract = frontMatter(data);
               var html = markdown.markdown.toHTML(extract.body);
 
-              if (extract.attributes.template) {
-                // TODO: use template if defined in metadata
-              }
-
               var dstFilename = el.replace(/\.md$/i, '.html');
               dstPath = path.join(OUTPUT_DIR, relativePath, dstFilename);
 
-              fs.writeFile(dstPath, html);
+              if (extract.attributes.template && templates[extract.attributes.template]) {
+                // use template if defined in metadata
+                var render = templates[extract.attributes.template].render({
+                  'content': html
+                });
+
+                render.done(function(renderedHtml) {
+                  fs.writeFile(dstPath, renderedHtml);
+                });
+              } else {
+                fs.writeFile(dstPath, html);
+              }
             });
 
             break;
