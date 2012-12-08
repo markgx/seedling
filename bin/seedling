@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 var path = require('path')
+  , argv = require('optimist').argv
+  , connect = require('connect')
+  , http = require('http')
   , Seedling = require('../lib/seedling');
 
 // TODO: parse command line arguments
@@ -8,7 +11,18 @@ var path = require('path')
 var sitePath = path.resolve('.');
 
 console.log('Seedling v.0.0');
-console.log('Generating site for path: ' + path.resolve('.'));
+console.log('Generating site for path: ' + sitePath);
 
 var seedling = new Seedling(sitePath);
 seedling.generate();
+
+if (argv.server) {
+  var port = parseInt(argv.server) || 8888;
+
+  connect()
+    .use(connect.static(path.join(sitePath, '_site')))
+    .listen(port);
+
+  console.log('\nServer running at http://127.0.0.1:' + port);
+  console.log('Press Ctrl+C to stop.')
+}
