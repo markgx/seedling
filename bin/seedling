@@ -8,7 +8,7 @@ var path = require('path')
 
 // TODO: parse command line arguments
 
-var sitePath = path.resolve('.');
+var sitePath = argv._[0] ? path.resolve(argv._[0]) : process.cwd();
 
 console.log('Seedling v.0.0');
 console.log('Generating site for path: ' + sitePath);
