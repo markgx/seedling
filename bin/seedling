@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+var path = require('path')
+  , Seedling = require('../lib/seedling');
+
+// TODO: parse command line arguments
+
+var sitePath = path.resolve('.');
+
+console.log('Seedling v.0.0');
+console.log('Generating site for path: ' + path.resolve('.'));
+
+var seedling = new Seedling(sitePath);
+seedling.generate();

@@ -10,6 +10,7 @@
     "url": "https://github.com/markgx/seedling.git"
   },
   "dependencies" : {
+    "underscore": "1.4.x",
     "markdown": "0.4.x",
     "front-matter": "0.0.x",
     "liquid-node": "0.0.x"
@@ -17,7 +18,10 @@
   "devDependencies": {
   },
   "bundledDependencies": [
-  ],  
+  ],
+  "bin": {
+    "seedling": "./bin/seedling"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=0.8"
